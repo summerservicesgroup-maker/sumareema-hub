@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apply — Virtual Assistant · Sumareema Group</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg:#0b0b0e;--panel:#161417;--panel2:#1c1a1e;--line:rgba(212,175,55,.22);--gold:#d4af37;--gold-soft:#e7cd76;--ink:#f4f1e9;--dim:#ada596;--green:#37d39b;--red:#e8645f}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1200px 600px at 50% -10%,#1a1712,#0b0b0e);color:var(--ink);font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:22px 16px 60px}
+  .wrap{max-width:600px;margin:0 auto}
+  .badge{width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#1a1712,#0b0b0e);border:2px solid var(--gold);display:grid;place-items:center;font-weight:800;font-size:28px;color:var(--gold);margin:0 auto 14px;box-shadow:0 6px 22px rgba(0,0,0,.5)}
+  h1{font-size:24px;text-align:center;letter-spacing:.3px}
+  .tag{color:var(--gold-soft);text-align:center;font-size:13px;margin-top:4px}
+  .sub{color:var(--dim);text-align:center;font-size:13px;margin:8px auto 22px;max-width:460px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h2{font-size:15px;color:var(--gold);margin-bottom:4px}
+  label{display:block;font-size:13px;color:var(--dim);margin:12px 0 5px}
+  input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:11px 12px;font-size:15px;font-family:inherit}
+  textarea{min-height:90px;resize:vertical}
+  .q{margin:16px 0;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .q:last-child{border-bottom:none}
+  .qt{font-weight:600;font-size:14px;margin-bottom:6px}
+  .opt{display:flex;gap:9px;align-items:flex-start;margin-top:7px;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt input{width:auto;margin:3px 0 0}
+  .btn{width:100%;margin-top:18px;background:linear-gradient(145deg,var(--gold),#b8932e);color:#0b0b0e;font-weight:700;border:none;border-radius:11px;padding:14px;font-size:15px;cursor:pointer}
+  .btn:disabled{opacity:.6}
+  .done{text-align:center;padding:30px 10px}
+  .done .ic{font-size:40px}
+  .err{color:var(--red);font-size:13px;margin-top:10px;text-align:center}
+  .foot{text-align:center;color:var(--dim);font-size:11px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<script>
+/* ===== paste the SAME two values you put in index.html ===== */
+const SUPABASE_URL='https://dqhrpywuljpwxuzftrcw.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxaHJweXd1bGpwd3h1emZ0cmN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMDg4NTMsImV4cCI6MjA5ODY4NDg1M30.j3RrkXcXi5KNrHKPQVR0_3tP05bdzD9JZPNVyfKROGM';
+/* =========================================================== */
+const NS='sumareema:';
+const READY=!SUPABASE_URL.startsWith('YOUR_')&&!SUPABASE_ANON_KEY.startsWith('YOUR_');
+const sb=READY?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const PASS_MARK=75;
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const APPLY_FIELDS=[
+ {key:'fullName',label:'Full name'},{key:'email',label:'Email'},{key:'phone',label:'Phone / WhatsApp'},
+ {key:'experience',label:'Years of VA / BPO experience'},{key:'tools',label:'Tools you have used'},
+ {key:'tz',label:'Time zone'},{key:'availability',label:'Shifts / hours you can work'},
+ {key:'internet',label:'Internet backup? (yes/no + what)'},{key:'power',label:'Power backup? (yes/no + what)'},
+ {key:'laptop',label:'Device spec (RAM / OS)'}
+];
+const TEST_QS=[
+ {id:'a1',section:'English',type:'mc',q:'Choose the sentence that is written correctly.',options:["He don't have access to the sheet yet.","He doesn't have access to the sheet yet.","He not have access to the sheet yet.","He doesn't has access to the sheet yet."],answer:1},
+ {id:'a2',section:'English',type:'mc',q:'A client writes: "Please action this by EOD." What does EOD mean?',options:['End of day','Every other day','Estimated on delivery','End of discussion'],answer:0},
+ {id:'a3',section:'English',type:'mc',q:'A client messages bluntly: "this is wrong fix now". Which reply is most professional?',options:['ok fixing','Sorry! On it.','Apologies for the error — I am fixing it now and will confirm once done.','why is it wrong'],answer:2},
+ {id:'b1',section:'VA skills',type:'mc',q:'A call is set for 3:00 PM London time (BST). What time is that in Manila?',options:['9:00 PM','10:00 PM','11:00 PM','8:00 PM'],answer:1},
+ {id:'b2',section:'VA skills',type:'mc',q:'Which spreadsheet formula adds the values in cells B2 to B10?',options:['=ADD(B2:B10)','=SUM(B2,B10)','=SUM(B2:B10)','=TOTAL(B2-B10)'],answer:2},
+ {id:'b3',section:'VA skills',type:'mc',q:'A job was charged £100 and the engineer is on a 60% share. What should the payment link be?',options:['£40','£60','£100','£160'],answer:1},
+ {id:'b4',section:'VA skills',type:'mc',q:'What is the most reliable way to prove a task was completed?',options:['Tell your supervisor verbally','Tick it off the list','Attach a screenshot as proof','Remember it for later'],answer:2},
+ {id:'c1',section:'Judgement',type:'mc',q:'You are about to log a job and notice it might already be on the sheet. What do you do?',options:['Add it again to be safe','Check the sheet first and only add it if it is not already there','Ignore it','Ask the client to resend'],answer:1},
+ {id:'c2',section:'Judgement',type:'mc',q:'Two groups message at the same time: one is an emergency, one is a routine update. Which do you handle first?',options:['Routine update','The emergency','Whichever is on top','Neither, wait for instructions'],answer:1},
+ {id:'c3',section:'Judgement',type:'text',q:'A client messages angrily that a booking was missed. Write the reply you would send.'}
+];
+function scoreTest(ans){const mc=TEST_QS.filter(q=>q.type==='mc');let s=0;mc.forEach(q=>{if(+ans[q.id]===q.answer)s++;});const pct=Math.round(s/mc.length*100);return{score:s,max:mc.length,pct,passed:pct>=PASS_MARK};}
+
+const root=document.getElementById('root');
+function renderForm(){
+  if(!READY){root.innerHTML='<div class="card"><h1>Application form</h1><p class="sub">This page is not connected yet. Paste your Supabase URL and anon key into apply.html and re-upload.</p></div>';return;}
+  const fields=APPLY_FIELDS.map(f=>`<label>${f.label}</label><input id="ap-${f.key}">`).join('');
+  const qs=TEST_QS.map((q,i)=>{
+    if(q.type==='text')return`<div class="q"><div class="qt">${i+1}. ${esc(q.q)}</div><textarea id="ap-${q.id}"></textarea></div>`;
+    return`<div class="q"><div class="qt">${i+1}. ${esc(q.q)}</div>${q.options.map((o,oi)=>`<label class="opt"><input type="radio" name="q_${q.id}" value="${oi}"> <span>${esc(o)}</span></label>`).join('')}</div>`;
+  }).join('');
+  root.innerHTML=`<div class="badge">S</div><h1>Join the Sumareema team</h1><div class="tag">Operations Driven · People Powered</div>
+    <p class="sub">We are hiring Virtual Assistants. Fill in your details and take a short test (about 15 minutes). Be honest — the test is part of how we shortlist.</p>
+    <div class="card"><h2>Your details</h2>${fields}</div>
+    <div class="card"><h2>Quick test</h2>${qs}</div>
+    <button class="btn" id="submit">Submit application</button>
+    <div id="err" class="err"></div>
+    <div class="foot">Sumareema Group · your data is sent securely and only seen by our hiring team.</div>`;
+  document.getElementById('submit').onclick=submit;
+}
+async function submit(){
+  const btn=document.getElementById('submit');const err=document.getElementById('err');err.textContent='';
+  const details={};APPLY_FIELDS.forEach(f=>details[f.key]=(document.getElementById('ap-'+f.key).value||'').trim());
+  if(!details.fullName){err.textContent='Please enter your name.';return;}
+  if(!details.email){err.textContent='Please enter your email.';return;}
+  const answers={},freeText={};
+  TEST_QS.forEach(q=>{if(q.type==='text')freeText[q.id]=(document.getElementById('ap-'+q.id).value||'').trim();
+    else{const sel=document.querySelector('input[name="q_'+q.id+'"]:checked');answers[q.id]=sel?+sel.value:-1;}});
+  const sc=scoreTest(answers);
+  const ap={id:uid(),name:details.fullName,email:details.email,details,test:{answers,freeText,score:sc.score,max:sc.max,pct:sc.pct,passed:sc.passed},stage:sc.passed?'interview':'not_passed',interview:null,outcome:null,createdAt:Date.now(),source:'public'};
+  btn.disabled=true;btn.textContent='Submitting…';
+  try{const {error}=await sb.from('portal_kv').insert({k:NS+'apply:'+ap.id,v:ap});
+    if(error)throw error;
+    root.innerHTML=`<div class="badge">S</div><div class="card done"><div class="ic">✓</div><h1 style="margin-top:10px">Thank you, ${esc(details.fullName.split(' ')[0])}</h1>
+      <p class="sub">Your application and test are in. Our manager will review them and be in touch about the next step. You can close this page.</p></div>`;
+  }catch(e){btn.disabled=false;btn.textContent='Submit application';err.textContent='Sorry, something went wrong sending your application. Please try again.';}
+}
+renderForm();
+</script>
+</body>
+</html>
